@@ -133,4 +133,4 @@ data/div2k
 data/mscoco
 
 # VSCode
-.vscode/
+*.vscode
