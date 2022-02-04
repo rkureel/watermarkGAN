@@ -11,7 +11,6 @@ class EncoderDecoder(nn.Module):
         super(EncoderDecoder, self).__init__()
         self.encoder = Encoder(config)
         self.noiser = noiser
-
         self.decoder = Decoder(config)
 
     def forward(self, image, message):

@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from .conv_relu_nb import ConvReluNB
 from config.watermarkganconfig import WatermarkGANConfiguration
 
 
@@ -11,17 +12,16 @@ class Encoder(nn.Module):
         self.conv_channels = config.encoder_channels
         self.num_blocks = config.encoder_blocks
 
-        # layers = [ConvBNRelu(3, self.conv_channels)]
+        self.features = nn.Sequential(
+            ConvReluNB(3, self.conv_channels)
+        )
 
-        # for _ in range(config.encoder_blocks-1):
-        #     layer = ConvBNRelu(self.conv_channels, self.conv_channels)
-        #     layers.append(layer)
-
-        # self.conv_layers = nn.Sequential(*layers)
-        # self.after_concat_layer = ConvBNRelu(self.conv_channels + 3 + config.message_length,
-        #                                      self.conv_channels)
-
-        self.final_layer = nn.Conv2d(self.conv_channels, 3, kernel_size=1)
+        self.layers = nn.Sequential(
+            ConvReluNB(self.conv_channels + 3 + config.message_length, self.conv_channels),
+            ConvReluNB(self.conv_channels, self.conv_channels),
+            nn.Conv2d(self.conv_channels, 3, kernel_size=3),
+            nn.Tanh(),
+        )
 
     def forward(self, image, message):
 
@@ -31,9 +31,8 @@ class Encoder(nn.Module):
         expanded_message.unsqueeze_(-1)
 
         expanded_message = expanded_message.expand(-1,-1, self.H, self.W)
-        encoded_image = self.conv_layers(image)
+        encoded_image = self.features(image)
         # concatenate expanded message and image
         concat = torch.cat([expanded_message, encoded_image, image], dim=1)
-        im_w = self.after_concat_layer(concat)
-        im_w = self.final_layer(im_w)
+        im_w = self.layers(concat)
         return im_w
