@@ -1,29 +1,41 @@
 import torch.nn as nn
 from config.watermarkganconfig import WatermarkGANConfiguration
-
+from .conv_relu_bn import ConvReluBN
 
 class Decoder(nn.Module):
     def __init__(self, config: WatermarkGANConfiguration):
 
         super(Decoder, self).__init__()
         self.channels = config.decoder_channels
-
-        # layers = [ConvBNRelu(3, self.channels)]
-        # for _ in range(config.decoder_blocks - 1):
-        #     layers.append(ConvBNRelu(self.channels, self.channels))
-
-        # # layers.append(block_builder(self.channels, config.message_length))
-        # layers.append(ConvBNRelu(self.channels, config.message_length))
-
-        # layers.append(nn.AdaptiveAvgPool2d(output_size=(1, 1)))
-        # self.layers = nn.Sequential(*layers)
+        self.message_length = config.message_length
+        self.models = self._build_models()
 
         self.linear = nn.Linear(config.message_length, config.message_length)
 
+    def self._build_models(self):
+        self.conv1 = nn.Sequential(
+            ConvReluBN(3, self.channels)
+        )
+        
+        self.conv2 = nn.Sequential(
+            ConvReluBN(self.channels, self.channels)
+        )
+
+        self.conv3 = nn.Sequential(
+            ConvReluBN(self.channels*2, self.channels)
+        )
+
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(in_channels=self.channels*3, out_channels=self.message_length, kernel_size=3, padding=1)
+        )
+
+        return self.conv1, self.conv2, self.conv3, self.conv4
+
     def forward(self, image_with_wm):
-        x = self.layers(image_with_wm)
-        # the output is of shape b x c x 1 x 1, and we want to squeeze out the last two dummy dimensions and make
-        # the tensor of shape b x c. If we just call squeeze_() it will also squeeze the batch dimension when b=1.
-        x.squeeze_(3).squeeze_(2)
-        x = self.linear(x)
+        x = self.models[0](image_with_wm)
+        x_list = [x]
+        for layer in self.models[1:]:
+            concat = torch.cat(x_list, dim=1)
+            x_list.append(x)
+
         return x

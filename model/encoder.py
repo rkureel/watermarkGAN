@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .conv_relu_nb import ConvReluNB
+from .conv_relu_bn import ConvReluBN
 from config.watermarkganconfig import WatermarkGANConfiguration
 
 
@@ -15,19 +15,19 @@ class Encoder(nn.Module):
 
     def _build_models(self):
         self.features = nn.Sequential(
-            ConvReluNB(3, self.conv_channels)
+            ConvReluBN(3, self.conv_channels)
         )
 
         self.conv1 = nn.Sequential(
-            ConvReluNB(self.conv_channels + config.message_length, self.conv_channels),
+            ConvReluBN(self.conv_channels + config.message_length, self.conv_channels),
         )
 
         self.conv2 = nn.Sequential(
-            ConvReluNB(self.conv_channels*2 + config.message_length, self.conv_channels),
+            ConvReluBN(self.conv_channels*2 + config.message_length, self.conv_channels),
         )
 
         self.conv3 = nn.Sequential(
-            nn.Conv2d(in_channels=self.conv_channels*3 + self.data_depth, 3)
+            nn.Conv2d(in_channels=self.conv_channels*3 + self.data_depth, out_channels=3, kernel_size=3, padding=1)
         )
         return self.features, self.conv1, self.conv2, self.conv3
 
