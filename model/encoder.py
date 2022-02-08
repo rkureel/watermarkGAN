@@ -11,17 +11,25 @@ class Encoder(nn.Module):
         self.W = config.W
         self.conv_channels = config.encoder_channels
         self.num_blocks = config.encoder_blocks
+        self.models = self._build_models()
 
+    def _build_models(self):
         self.features = nn.Sequential(
             ConvReluNB(3, self.conv_channels)
         )
 
-        self.layers = nn.Sequential(
-            ConvReluNB(self.conv_channels + 3 + config.message_length, self.conv_channels),
-            ConvReluNB(self.conv_channels, self.conv_channels),
-            nn.Conv2d(self.conv_channels, 3, kernel_size=3),
-            nn.Tanh(),
+        self.conv1 = nn.Sequential(
+            ConvReluNB(self.conv_channels + config.message_length, self.conv_channels),
         )
+
+        self.conv2 = nn.Sequential(
+            ConvReluNB(self.conv_channels*2 + config.message_length, self.conv_channels),
+        )
+
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(in_channels=self.conv_channels*3 + self.data_depth, 3)
+        )
+        return self.features, self.conv1, self.conv2, self.conv3
 
     def forward(self, image, message):
 
@@ -31,8 +39,12 @@ class Encoder(nn.Module):
         expanded_message.unsqueeze_(-1)
 
         expanded_message = expanded_message.expand(-1,-1, self.H, self.W)
-        encoded_image = self.features(image)
-        # concatenate expanded message and image
-        concat = torch.cat([expanded_message, encoded_image, image], dim=1)
-        im_w = self.layers(concat)
-        return im_w
+        encoded_image = self.models[0](image)
+        
+        x = encoded_image
+        for layer in self.models[1:]:
+            concat = torch.cat([expanded_message, x], dim=1)
+            x = layer(concat)
+
+        x = torch.cat([image, x], dim=1)
+        return x
