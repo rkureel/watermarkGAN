@@ -9,14 +9,13 @@ from .critic import Critic
 
 
 class WatermarkGAN:
-    def __init__(self, configuration: WatermarkGANConfiguration, device: torch.device, noiser: Noiser, tb_logger, verbose=False, log_dir=None):
+    def __init__(self, configuration: WatermarkGANConfiguration, device: torch.device, noiser: Noiser, tb_logger):
         self.device = device
         self.encoder_decoder = EncoderDecoder(configuration, noiser).to(self.device)
         self.critic = Critic(configuration).to(self.device)
         self.optimizer_enc_dec = torch.optim.Adam(self.encoder_decoder.parameters())
         self.optimizer_critic = torch.optim.Adam(self.critic.parameters())
         self.config = configuration
-        self.verbose = verbose
         self.bce_with_logits_loss = nn.BCEWithLogitsLoss().to(self.device)
         self.mse_loss = nn.MSELoss().to(self.device)
 
@@ -157,5 +156,5 @@ class WatermarkGAN:
         }
         return losses, (encoded_images, noised_images, decoded_messages)
 
-    def to_stirng(self):
+    def to_string(self):
         return '{}\n{}'.format(str(self.encoder_decoder), str(self.critic))

@@ -10,7 +10,7 @@ class Encoder(nn.Module):
         self.H = config.H
         self.W = config.W
         self.conv_channels = config.encoder_channels
-        self.num_blocks = config.encoder_blocks
+        self.message_length = config.message_length
         self.models = self._build_models()
 
     def _build_models(self):
@@ -19,15 +19,15 @@ class Encoder(nn.Module):
         )
 
         self.conv1 = nn.Sequential(
-            ConvReluBN(self.conv_channels + config.message_length, self.conv_channels),
+            ConvReluBN(self.conv_channels + self.message_length, self.conv_channels),
         )
 
         self.conv2 = nn.Sequential(
-            ConvReluBN(self.conv_channels*2 + config.message_length, self.conv_channels),
+            ConvReluBN(self.conv_channels*2 + self.message_length, self.conv_channels),
         )
 
         self.conv3 = nn.Sequential(
-            nn.Conv2d(in_channels=self.conv_channels*3 + self.data_depth, out_channels=3, kernel_size=3, padding=1)
+            nn.Conv2d(in_channels=self.conv_channels*3 + self.conv_channels, out_channels=3, kernel_size=3, padding=1)
         )
         return self.features, self.conv1, self.conv2, self.conv3
 

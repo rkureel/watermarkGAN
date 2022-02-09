@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from config.watermarkganconfig import WatermarkGANConfiguration
 from .conv_relu_bn import ConvReluBN
@@ -12,7 +13,7 @@ class Decoder(nn.Module):
 
         self.linear = nn.Linear(config.message_length, config.message_length)
 
-    def self._build_models(self):
+    def _build_models(self):
         self.conv1 = nn.Sequential(
             ConvReluBN(3, self.channels)
         )
