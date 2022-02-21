@@ -39,7 +39,7 @@ class WatermarkGAN:
         self.encoder_decoder.train()
         self.critic.train()
         with torch.enable_grad():
-            # ---------------- Train the criticinator -----------------------------
+            # ---------------- Train the critic -----------------------------
             self.optimizer_critic.zero_grad()
             # train on cover
             d_target_label_cover = torch.full((batch_size, 1), self.cover_label, device=self.device)

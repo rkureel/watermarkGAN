@@ -5,7 +5,7 @@ import torch
 import os
 import utils
 import logging
-from pprint import pprint
+import pprint
 from train import train
 from model.watermarkgan import WatermarkGAN
 from noise_layers.noiser import Noiser
@@ -76,6 +76,9 @@ def main():
             encoder_channels=32,
             decoder_channels=32,
             critic_channels=32,
+            decoder_loss=1,
+            encoder_loss=0.7,
+            adversarial_loss=1e-3
         )
 
         this_run_folder = utils.create_folder_for_run(train_options.runs_folder, args.name)
@@ -116,7 +119,7 @@ def main():
     logging.info("\nTraining train_options:\n")
     logging.info(pprint.pformat(vars(train_options)))
 
-    train(model, device, hidden_config, train_options, this_run_folder, tb_logger)
+    train(model, device, watermarkconfig, train_options, this_run_folder, tb_logger)
 
 if __name__ == "__main__":
     main()
