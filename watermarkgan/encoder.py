@@ -22,28 +22,24 @@ class Encoder(nn.Module):
         )
 
         self.conv2 = nn.Sequential(
-            ConvReluBN(self.conv_channels*2 + self.message_length, self.conv_channels),
+            ConvReluBN(self.conv_channels + self.message_length, self.conv_channels),
         )
 
         self.conv3 = nn.Sequential(
-            nn.Conv2d(in_channels=self.conv_channels*3 + self.conv_channels, out_channels=3, kernel_size=3, padding=1)
+            nn.Conv2d(in_channels=self.conv_channels + self.message_length, out_channels=3, kernel_size=3, padding=1)
         )
         return self.features, self.conv1, self.conv2, self.conv3
 
     def forward(self, image, message):
 
-        # First, add two dummy dimensions in the end of the message.
-        # This is required for the .expand to work correctly
         expanded_message = message.unsqueeze(-1)
         expanded_message.unsqueeze_(-1)
-
         expanded_message = expanded_message.expand(-1,-1, self.H, self.W)
+    
         encoded_image = self.models[0](image)
-        
         x = encoded_image
         for layer in self.models[1:]:
             concat = torch.cat([expanded_message, x], dim=1)
             x = layer(concat)
-
-        x = torch.cat([image, x], dim=1)
+        x = image + x
         return x

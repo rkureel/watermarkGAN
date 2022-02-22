@@ -79,8 +79,7 @@ class WatermarkGAN(object):
             os.makedirs(self.samples_path, exist_ok=True)
         
     def _random_data(self, cover):
-        N, _, H, W = cover.size()
-        message = torch.Tensor(np.random([0, 1], (cover.shape[0], 30))).to(self.device)
+        message = torch.Tensor(np.random.choice([0, 1], (cover.shape[0], 30))).to(self.device)
         return message
     
     def _encode_decode(self, cover, quantize=False):
@@ -113,12 +112,12 @@ class WatermarkGAN(object):
             cover_score = self._critic(cover)
             generated_score = self._critic(generated)
 
-            self.critic_optimizer = torch.zero_grad()
+            self.critic_optimizer.zero_grad()
             (cover_score - generated_score).backward(retain_graph=False)
             self.critic_optimizer.step()
 
             for p in self.critic.parameters():
-                p.data.clam_(-0.1, 0.1)
+                p.data.clamp(-0.1, 0.1)
             
             metrics["train.cover_score"].append(cover_score.item())
             metrics["train.generated_score"].append(generated_score.item())

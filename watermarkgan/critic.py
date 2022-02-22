@@ -4,8 +4,9 @@ from .conv_relu_bn import ConvReluBN
 class Critic(nn.Module):
     def __init__(self):
         super(Critic, self).__init__()
-        self.models = self._build_models()
         self.critic_channels = 32
+        self.models = self._build_models()
+        
         # layers = [ConvBNRelu(3, config.discriminator_channels)]
         # for _ in range(config.discriminator_blocks-1):
         #     layers.append(ConvBNRelu(config.discriminator_channels, config.discriminator_channels))
