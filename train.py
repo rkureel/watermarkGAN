@@ -22,7 +22,7 @@ def main():
         encoder=encoder,
         decoder=decoder,
         critic=Critic,
-        cuda=False,
+        cuda=True,
         verbose=True,
     )
 

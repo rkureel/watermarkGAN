@@ -27,6 +27,9 @@ METRIC_FIELDS = [
     'train.generated_score',
 ]
 
+path =os.makedirs("logs", exist_ok=True)
+writer = SummaryWriter(path)
+
 class WatermarkGAN(object):
 
     def _get_instance(self, class_or_instance, kwargs):
@@ -79,8 +82,6 @@ class WatermarkGAN(object):
             self.samples_path = os.path.join(self.log_dir, "samples")
             os.makedirs(self.samples_path, exist_ok=True)
             self.tensorlogs_path = os.path.join(self.log_dir, "watermarkgan")
-            os.makedirs(self.tensorlogs_path, exist_ok=True)
-            self.writer = SummaryWriter(self.tensorlogs_path)
             self.models_dir = os.path.join(self.log_dir, "models")
             os.makedirs(self.models_dir, exist_ok=True)
 
@@ -174,6 +175,7 @@ class WatermarkGAN(object):
             metrics['val.bpp'].append(0)
 
     def fit(self, train, validate, epochs=5):
+        self.save('logs/test.wmgan')
         if self.critic_optimizer is None:
             self.critic_optimizer, self.decoder_optimizer = self._get_optimizers()
             self.epochs = 0
@@ -212,7 +214,7 @@ class WatermarkGAN(object):
             save_path = os.path.join(self.models_dir, str(epoch) + ".wmgan")
             self.save(save_path)
             for key, val in self.fit_metrics.items():
-                self.writer.add_scalar(key, val, epoch-1)
+                writer.add_scalar(key, val, epoch-1)
 
             if self.cuda:
                 torch.cuda.empty_cache()
