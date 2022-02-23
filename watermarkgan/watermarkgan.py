@@ -10,6 +10,7 @@ from collections import Counter
 from torch.nn.functional import binary_cross_entropy_with_logits, mse_loss
 from torch.optim import Adam
 from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
 
 METRIC_FIELDS = [
     'val.encoder_mse',
@@ -77,7 +78,12 @@ class WatermarkGAN(object):
             os.makedirs(self.log_dir, exist_ok=True)
             self.samples_path = os.path.join(self.log_dir, "samples")
             os.makedirs(self.samples_path, exist_ok=True)
-        
+            self.tensorlogs_path = os.path.join(self.log_dir, "watermarkgan")
+            os.makedirs(self.tensorlogs_path, exist_ok=True)
+            self.writer = SummaryWriter(self.tensorlogs_path)
+            self.models_dir = os.path.join(self.log_dir, "models")
+            os.makedirs(self.models_dir, exist_ok=True)
+
     def _random_data(self, cover):
         message = torch.Tensor(np.random.choice([0, 1], (cover.shape[0], 30))).to(self.device)
         return message
@@ -202,7 +208,12 @@ class WatermarkGAN(object):
                     self.epochs, self.fit_metrics['val.bpp'])
 
                 self.save(os.path.join(self.log_dir, save_name))
-                
+            
+            save_path = os.path.join(self.models_dir, str(epoch) + ".wmgan")
+            self.save(save_path)
+            for key, val in self.fit_metrics.items():
+                self.writer.add_scalar(key, val, epoch-1)
+
             if self.cuda:
                 torch.cuda.empty_cache()
 
