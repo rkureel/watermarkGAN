@@ -144,15 +144,15 @@ class Hidden:
             g_target_label_encoded = torch.full((batch_size, 1), self.cover_label, device=self.device)
 
             d_on_cover = self.discriminator(images)
-            d_loss_on_cover = self.bce_with_logits_loss(d_on_cover, d_target_label_cover)
+            d_loss_on_cover = self.bce_with_logits_loss(d_on_cover.float(), d_target_label_cover.float())
 
             encoded_images, noised_images, decoded_messages = self.encoder_decoder(images, messages)
 
             d_on_encoded = self.discriminator(encoded_images)
-            d_loss_on_encoded = self.bce_with_logits_loss(d_on_encoded, d_target_label_encoded)
+            d_loss_on_encoded = self.bce_with_logits_loss(d_on_encoded.float(), d_target_label_encoded.float())
 
             d_on_encoded_for_enc = self.discriminator(encoded_images)
-            g_loss_adv = self.bce_with_logits_loss(d_on_encoded_for_enc, g_target_label_encoded)
+            g_loss_adv = self.bce_with_logits_loss(d_on_encoded_for_enc.float(), g_target_label_encoded.float())
 
             if self.vgg_loss is None:
                 g_loss_enc = self.mse_loss(encoded_images, images)
