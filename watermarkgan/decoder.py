@@ -4,13 +4,10 @@ from .conv_relu_bn import ConvReluBN
 
 class Decoder(nn.Module):
     def __init__(self):
-
         super(Decoder, self).__init__()
         self.channels = 32
         self.message_length = 30
         self.models = self._build_models()
-
-        self.linear = nn.Linear(self.message_length, self.message_length)
 
     def _build_models(self):
         self.conv1 = nn.Sequential(

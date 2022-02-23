@@ -124,6 +124,9 @@ class WatermarkGAN(object):
     
     def _coding_scores(self, cover, generated, payload, decoded):
         encoder_mse = mse_loss(generated, cover)
+        payload = payload.unsqueeze(-1)
+        payload.unsqueeze_(-1)
+        payload = payload.expand(-1,-1, 128, 128)
         decoder_loss = binary_cross_entropy_with_logits(decoded, payload)
         decoder_acc = (decoded >= 0.0).eq(payload >= 0.5).sum().float() / payload.numel()
         return encoder_mse, decoder_loss, decoder_acc
@@ -162,7 +165,7 @@ class WatermarkGAN(object):
             metrics['val.cover_score'].append(cover_score.item())
             metrics['val.generated_score'].append(generated_score.item())
             metrics['val.psnr'].append(10 * torch.log10(4 / encoder_mse).item())
-            metrics['val.bpp'].append(self.data_depth * (2 * decoder_acc.item() - 1))
+            metrics['val.bpp'].append(0)
 
     def fit(self, train, validate, epochs=5):
         if self.critic_optimizer is None:
@@ -199,9 +202,11 @@ class WatermarkGAN(object):
                     self.epochs, self.fit_metrics['val.bpp'])
 
                 self.save(os.path.join(self.log_dir, save_name))
-                self._generate_samples(self.samples_path, sample_cover, epoch)
-
+                
             if self.cuda:
                 torch.cuda.empty_cache()
 
             gc.collect()
+
+    def save(self, path):
+        torch.save(self, path)
