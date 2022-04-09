@@ -136,3 +136,6 @@ data/mscoco
 *.vscode
 
 runs/
+
+logs/
+models/
