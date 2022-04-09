@@ -1,3 +1,5 @@
+# Noise layers have been taken from - https://github.com/ando-khachatryan/HiDDeN/tree/master/noise_layers
+
 import torch
 import numpy as np
 import torch.nn.functional as F

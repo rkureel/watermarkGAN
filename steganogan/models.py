@@ -76,7 +76,7 @@ class SteganoGAN(object):
         self.decoder.to(self.device)
         self.critic.to(self.device)
 
-    def __init__(self, data_depth, encoder, decoder, critic,
+    def __init__(self, data_depth, encoder, decoder, critic, noise_layers,
                  cuda=False, verbose=False, log_dir="logs", **kwargs):
 
         self.verbose = verbose
@@ -86,6 +86,7 @@ class SteganoGAN(object):
         self.encoder = self._get_instance(encoder, kwargs)
         self.decoder = self._get_instance(decoder, kwargs)
         self.critic = self._get_instance(critic, kwargs)
+        self.noise_layers = noise_layers
         self.set_device(cuda)
 
         self.critic_optimizer = None
@@ -123,18 +124,21 @@ class SteganoGAN(object):
         """
         payload = self._random_data(cover)
         generated = self.encoder(cover, payload)
-        choice = random.randrange(0, 6)
-        if choice == 0:
-            generated = dropout(cover, generated, self.device)
-        elif choice == 1:
-            generated = gaussian_blur(generated)
+        choices = [int(digit) for digit in self.noise_layers]
+        choice = random.choice(choices)
+        if choice == 1:
+            pass
         elif choice == 2:
-            generated = cropout(cover, generated, self.device)    
+            generated = dropout(cover, generated, self.device)
         elif choice == 3:
-            generated = crop(cover, generated, self.device)
+            generated = crop(cover, generated, self.device)    
         elif choice == 4:
+            generated = cropout(cover, generated, self.device)
+        elif choice == 5:
+            generated = gaussian_blur(generated)
+        elif choice == 6:
             generated = jpeg_compress(cover, generated, self.device)
-        
+
         if quantize:
             generated = (255.0 * (generated + 1.0) / 2.0).long()
             generated = 2.0 * generated.float() / 255.0 - 1.0
