@@ -17,6 +17,11 @@ if __name__ == "__main__":
     train_parser.add_argument('--epochs', '-e', required=True, type=int, help='Number of epochs')
     train_parser.add_argument('--noise', '-n', required=True, type=str, help='Noise layers used for training. Mapping is as follows: 1-Identity, 2-Dropout, 3-Crop, 4-Cropout, 5-Gaussian Blur, 6-JPEG Compression')
 
+    evaluate_parser = subparsers.add_parser('evaluate', help='evaluate a model')
+    evaluate_parser.add_argument('--data-dir', '-d', required=True, type=str, help='The directory where data is stored')
+    evaluate_parser.add_argument('--noise', '-n', required=True, type=str, help='Noise layers used for evaluation. Mapping is as follows: 1-Identity, 2-Dropout, 3-Crop, 4-Cropout, 5-Gaussian Blur, 6-JPEG Compression')
+    evaluate_parser.add_argument('--path', '-p', required=True, type=str, help='The path of pretrained model.')
+
     args = parent_parser.parse_args()
 
     print(args)
@@ -29,5 +34,10 @@ if __name__ == "__main__":
 
         steganogan = SteganoGAN(1, DenseEncoder, DenseDecoder, BasicCritic, args.noise, hidden_size=32, cuda=True, verbose=True)
         steganogan.fit(train, validation, epochs=args.epochs)
-    else:
-        pass
+    elif args.command == "evaluate":
+        val_data_dir = os.path.join(args.data_dir, "val")
+        validation = DataLoader(val_data_dir)
+
+        steganogan = SteganoGAN(1, DenseEncoder, DenseDecoder, BasicCritic, args.noise, hidden_size=32, cuda=True, verbose=True)
+        steganogan.load(path=args.path)
+        steganogan.evaluate(validation)
