@@ -291,6 +291,22 @@ class SteganoGAN(object):
                 torch.cuda.empty_cache()
 
             gc.collect()
+    
+    def evaluate(self, validate):
+        metrics = {field: list() for field in METRIC_FIELDS}
+        self._validate(validate, metrics)
+        self.fit_metrics = {}
+        for k, v in metrics.items():
+            if(len(v)>0):
+                self.fit_metrics[k] = sum(v)/len(v)
+        for key, val in self.fit_metrics.items():
+                writer.add_scalar(key, val, 1)
+        print(self.fit_metrics)
+        # Empty cuda cache (this may help for memory leaks)
+        if self.cuda:
+            torch.cuda.empty_cache()
+
+        gc.collect()
 
     def _make_payload(self, width, height, depth, text):
         """
