@@ -228,8 +228,11 @@ class SteganoGAN(object):
         """
         payload = self._random_data(cover)
         generated = self.encoder(cover, payload)
-        # generated = gaussian_blur(cover, generated, self.device)
-        generated = gaussian_blur(generated)
+        #generated = dropout(cover, generated, self.device)
+        #generated = crop(cover, generated, self.device)
+        #generated = cropout(cover, generated, self.device)
+        #generated = gaussian_blur(generated)
+        #generated = jpeg_compress(cover, generated, self.device)
         if quantize:
             generated = (255.0 * (generated + 1.0) / 2.0).long()
             generated = 2.0 * generated.float() / 255.0 - 1.0
